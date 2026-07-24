@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>APECOFT · Take Your Heart</title>
+  <title>APECOFT · Bold Edition</title>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap"></noscript>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -410,13 +411,12 @@
       min-height: 240px;
       display: flex; align-items: center; justify-content: center;
     }
-    .wf-art .burst {
-      position: absolute; inset: -40%;
-      background: repeating-conic-gradient(from 0deg at 50% 50%, var(--red) 0 5deg, transparent 5deg 10deg);
-      opacity: 0.25;
-      animation: spin 16s linear infinite;
+    .wf-art .wf-stripes {
+      position: absolute; inset: -30%;
+      background: repeating-linear-gradient(115deg, transparent 0 30px, rgba(230,0,18,0.20) 30px 60px);
+      animation: wfWave 3s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes wfWave { to { transform: translateX(-60px); } }
     .wf-art .wf-center { position: relative; z-index: 2; text-align: center; }
     .wf-center .m {
       font-family: 'Anton', sans-serif;
@@ -783,10 +783,22 @@
       .sec-sub { text-align: left; }
       .p5-nav { display: none; }
     }
+
+    /* ─── PAGE TRANSITION (red slash) ─── */
+    .ptrans { position: fixed; inset: 0; z-index: 2000; display: none; pointer-events: none; will-change: transform; }
+    .ptrans.show { display: block; }
+    .ptrans.bold { background: repeating-linear-gradient(115deg, #e60012 0 46px, #0a0a0a 46px 92px); }
+    .ptrans.bold.coverIn { animation: boldIn .5s cubic-bezier(.7,0,.3,1) forwards; }
+    .ptrans.bold.revealAuto { animation: boldOut .6s cubic-bezier(.7,0,.3,1) .1s both; }
+    @keyframes boldIn  { from { transform: skewX(-10deg) scale(1.7) translateX(115%); } to { transform: skewX(-10deg) scale(1.7) translateX(0); } }
+    @keyframes boldOut { from { transform: skewX(-10deg) scale(1.7) translateX(0); } to { transform: skewX(-10deg) scale(1.7) translateX(-165%); } }
   </style>
 </head>
 
 <body id="top">
+
+  <!-- Page transition overlay: red slash, covering on load then sweeps away -->
+  <div id="ptrans" class="ptrans show bold revealAuto"></div>
 
   <!-- ═══ TOP BAR ═══ -->
   <header class="p5-topbar">
@@ -797,7 +809,7 @@
       <a href="#works">Works</a>
       <a href="#games">Games</a>
       <a href="#anime">Anime</a>
-      <a href="#community">Bonds</a>
+      <a href="#community">Community</a>
       <a href="#footer">Contact</a>
     </nav>
     <a href="index.html" class="p5-switch">◆ Change Style</a>
@@ -940,7 +952,7 @@
         <!-- TOOL SUITE -->
         <div class="work-card work-full jag" onclick="openModal('m-tool')">
           <div class="wf-art">
-            <div class="burst"></div>
+            <div class="wf-stripes"></div>
             <div class="wf-center">
               <div class="m">APECOFT</div>
               <div class="s">Tool Suite</div>
@@ -1421,6 +1433,19 @@
     }
     grid.addEventListener('mouseover', e=>{ const cell=e.target.closest('.cw-cell.letter'); if(!cell) return; const wl=cellMap[cell.dataset.pos]; if(wl&&wl.length) highlightWord(wl[0]); });
     grid.addEventListener('mouseleave', ()=> highlightWord(null));
+
+    // ─── PAGE TRANSITION ───
+    // Reveal is pure CSS (.revealAuto). Here we only handle leaving.
+    const ptrans = document.getElementById('ptrans');
+    // Change Style: slash back across, then return to the chooser
+    document.querySelectorAll('a[href="index.html"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        sessionStorage.setItem('backTo', 'bold');
+        ptrans.className = 'ptrans show bold coverIn';
+        setTimeout(() => { window.location.href = 'index.html'; }, 470);
+      });
+    });
   </script>
 
 </body>
