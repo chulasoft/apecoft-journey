@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APECOFT · Take Your Heart</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #e60012;
+      --red-bright: #ff1030;
+      --red-deep: #9e000d;
+      --black: #0a0a0a;
+      --ink: #121212;
+      --white: #f7f3ea;
+      --paper: #f7f3ea;
+      --yellow: #ffd200;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      font-family: 'Oswald', sans-serif;
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* animated diagonal stripe backdrop for the whole page */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -30%;
+      z-index: 0;
+      background: repeating-linear-gradient(115deg, #0d0d0d 0 70px, #141414 70px 140px);
+      animation: bgDrift 30s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes bgDrift { to { transform: translate(-140px, 0); } }
+
+    /* giant breathing star behind everything */
+    body::after {
+      content: '★';
+      position: fixed;
+      right: -8vw; top: 40vh;
+      font-size: 60vh;
+      line-height: 1;
+      color: var(--red);
+      opacity: 0.05;
+      z-index: 0;
+      pointer-events: none;
+      animation: bgStar 6s ease-in-out infinite;
+    }
+    @keyframes bgStar {
+      0%,100% { transform: rotate(-6deg) scale(1); opacity: 0.05; }
+      50%     { transform: rotate(-6deg) scale(1.12); opacity: 0.09; }
+    }
+
+    .stage { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 18px 60px; }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px) skewY(1.5deg);
+      transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2,0.9,0.3,1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0) skewY(0); }
+
+    /* ─── TOP BAR ─── */
+    .p5-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--black);
+      border-bottom: 3px solid var(--red);
+    }
+    .p5-brand {
+      font-family: 'Anton', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transform: skewX(-8deg);
+    }
+    .p5-brand .red { color: var(--red-bright); }
+    .p5-nav { display: flex; gap: 4px; flex-wrap: wrap; }
+    .p5-nav a {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      padding: 5px 10px;
+      transform: skewX(-8deg);
+      transition: background 0.15s, color 0.15s;
+    }
+    .p5-nav a:hover, .p5-nav a.active { background: var(--red); color: #fff; }
+    .p5-switch {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--white);
+      text-decoration: none;
+      padding: 6px 11px;
+      font-weight: 700;
+      transform: skewX(-8deg);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .p5-switch:hover { background: var(--yellow); }
+
+    /* ─── SECTION LABEL / HEADER ─── */
+    .sec { padding-top: 46px; }
+    .sec-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+    .sec-tag {
+      display: inline-block;
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--red);
+      padding: 4px 12px;
+      margin-bottom: 10px;
+      transform: skewX(-8deg);
+    }
+    .sec-title {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(30px, 5.5vw, 62px);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      transform: skewX(-4deg);
+      text-shadow: 4px 4px 0 var(--red);
+    }
+    .sec-sub {
+      font-family: 'Courier Prime', monospace;
+      font-style: italic;
+      font-size: 13px;
+      color: rgba(247,243,234,0.65);
+      max-width: 300px;
+      text-align: right;
+    }
+
+    /* jagged card base */
+    .jag {
+      background: var(--ink);
+      border: 2px solid #000;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+      position: relative;
+    }
+    .jag-red {
+      background: var(--red);
+      clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr 1fr;
+      gap: 22px;
+      padding-top: 40px;
+    }
+    .hero-kicker {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--red-bright);
+      border-left: 4px solid var(--red);
+      padding-left: 10px;
+      margin-bottom: 14px;
+    }
+    .hero-title {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(38px, 6vw, 78px);
+      line-height: 0.9;
+      text-transform: uppercase;
+      transform: skewX(-5deg);
+      margin-bottom: 18px;
+    }
+    .hero-title .red {
+      color: var(--red-bright);
+      display: inline-block;
+      animation: titleBreathe 3s ease-in-out infinite;
+    }
+    @keyframes titleBreathe {
+      0%,100% { text-shadow: 0 0 0 rgba(230,0,18,0); transform: scale(1); }
+      50%     { text-shadow: 0 0 26px rgba(255,16,48,0.7); transform: scale(1.03); }
+    }
+    .hero-deck {
+      font-family: 'Courier Prime', monospace;
+      font-style: italic;
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(247,243,234,0.8);
+      border-top: 2px solid var(--red);
+      padding-top: 12px;
+      margin-bottom: 16px;
+    }
+    .hero-body {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.75;
+      color: rgba(247,243,234,0.92);
+    }
+    .hero-body + .hero-body { margin-top: 12px; }
+    .hero-cta-row { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 11px 22px;
+      text-decoration: none;
+      transform: skewX(-8deg);
+      display: inline-block;
+      transition: transform 0.12s, background 0.15s, color 0.15s;
+    }
+    .btn > span { display: inline-block; transform: skewX(8deg); }
+    .btn-red { background: var(--red); color: #fff; border: 2px solid #000; }
+    .btn-red:hover { background: var(--red-bright); transform: skewX(-8deg) translateY(-2px); }
+    .btn-ghost { background: transparent; color: var(--white); border: 2px solid var(--white); }
+    .btn-ghost:hover { background: var(--white); color: var(--black); }
+
+    /* hero photo */
+    .hero-photo {
+      position: relative;
+      overflow: hidden;
+      border: 3px solid var(--red);
+      clip-path: polygon(0 0, 100% 0, 100% 88%, 88% 100%, 0 100%);
+      aspect-ratio: 4/5;
+      animation: photoPulse 4s ease-in-out infinite;
+    }
+    @keyframes photoPulse {
+      0%,100% { box-shadow: 0 0 0 rgba(230,0,18,0); }
+      50%     { box-shadow: 0 0 30px rgba(230,0,18,0.6); }
+    }
+    .hero-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      filter: saturate(1.1) contrast(1.05);
+      transition: transform 0.5s ease;
+    }
+    .hero-photo:hover img { transform: scale(1.06); }
+    .hero-photo .ph-cap {
+      position: absolute;
+      bottom: 0; left: 0;
+      background: var(--red);
+      color: #fff;
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+    }
+
+    /* side blocks */
+    .block { margin-bottom: 20px; }
+    .block-h {
+      font-family: 'Anton', sans-serif;
+      font-size: 17px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+      background: var(--black);
+      border-left: 5px solid var(--red);
+      padding: 5px 10px;
+      margin-bottom: 10px;
+      transform: skewX(-6deg);
+    }
+    .kv-list { list-style: none; }
+    .kv-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(230,0,18,0.35);
+      transition: background 0.15s, padding-left 0.15s;
+    }
+    .kv-list li:hover { background: rgba(230,0,18,0.12); padding-left: 10px; }
+    .kv-list li span { color: var(--red-bright); font-style: italic; font-size: 12px; text-align: right; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1.5px solid var(--red);
+      color: var(--white);
+      padding: 4px 9px;
+      transform: skewX(-6deg);
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+    }
+    .chip:hover { background: var(--red); color: #fff; transform: skewX(-6deg) translateY(-2px) rotate(-1deg); }
+
+    .soc-list { list-style: none; }
+    .soc-list li { border-bottom: 1px solid rgba(230,0,18,0.35); }
+    .soc-link {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 4px;
+      text-decoration: none;
+      color: var(--white);
+      transition: background 0.15s, padding-left 0.15s, color 0.15s;
+    }
+    .soc-link:hover { background: rgba(230,0,18,0.15); padding-left: 10px; color: var(--red-bright); }
+    .soc-link svg { flex-shrink: 0; }
+    .soc-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 13px; flex: 1; letter-spacing: 0.04em; }
+    .soc-handle { font-family: 'Courier Prime', monospace; font-size: 11px; color: rgba(247,243,234,0.5); font-style: italic; }
+
+    .pquote {
+      border-top: 3px solid var(--red);
+      margin-top: 18px;
+      padding-top: 14px;
+      position: relative;
+    }
+    .pquote .qmark {
+      font-family: 'Anton', sans-serif;
+      font-size: 46px;
+      color: var(--red);
+      line-height: 0.6;
+      display: block;
+    }
+    .pquote p {
+      font-family: 'Oswald', sans-serif;
+      font-style: italic;
+      font-weight: 600;
+      font-size: 16px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    /* ─── NUMBERS ─── */
+    .numbers {
+      margin-top: 46px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .num-card {
+      padding: 20px 16px;
+      overflow: hidden;
+    }
+    .num-card:nth-child(odd) { background: var(--red); }
+    .num-card:nth-child(even) { background: var(--ink); border: 2px solid var(--red); }
+    .num-big {
+      font-family: 'Anton', sans-serif;
+      font-size: 56px;
+      line-height: 0.9;
+      transform: skewX(-6deg);
+    }
+    .num-big sup { font-size: 22px; color: var(--yellow); }
+    .num-card:nth-child(even) .num-big sup { color: var(--red-bright); }
+    .num-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      color: rgba(255,255,255,0.85);
+    }
+    .num-desc {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 300;
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-top: 8px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    /* ─── WORKS ─── */
+    .works-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .work-full {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1.1fr 1.4fr;
+      gap: 0;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .work-full .wf-art {
+      background: var(--black);
+      position: relative;
+      overflow: hidden;
+      min-height: 240px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wf-art .burst {
+      position: absolute; inset: -40%;
+      background: repeating-conic-gradient(from 0deg at 50% 50%, var(--red) 0 5deg, transparent 5deg 10deg);
+      opacity: 0.25;
+      animation: spin 16s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .wf-art .wf-center { position: relative; z-index: 2; text-align: center; }
+    .wf-center .m {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(34px, 5vw, 64px);
+      transform: skewX(-6deg);
+      text-shadow: 3px 3px 0 var(--red);
+    }
+    .wf-center .s {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-top: 6px;
+    }
+    .work-full .wf-body {
+      background: var(--ink);
+      border: 2px solid var(--red);
+      border-left: none;
+      padding: 26px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .work-card {
+      background: var(--ink);
+      border: 2px solid #000;
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+      overflow: hidden;
+    }
+    .work-card:hover {
+      transform: translateY(-4px) skewX(-1deg);
+      border-color: var(--red);
+      box-shadow: 6px 6px 0 var(--red);
+    }
+    .work-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      border: 2px solid #000;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .work-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.1);
+      transition: transform 0.4s ease, filter 0.4s ease;
+    }
+    .work-card:hover .work-thumb img { transform: scale(1.08); filter: grayscale(0%) saturate(1.3) contrast(1.1); }
+    .work-cat {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--red-bright);
+      margin-bottom: 5px;
+    }
+    .work-title {
+      font-family: 'Anton', sans-serif;
+      font-size: 18px;
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+      transform: skewX(-3deg);
+    }
+    .work-desc {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 300;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: rgba(247,243,234,0.78);
+    }
+    .work-full .work-title { font-size: clamp(22px, 3vw, 34px); }
+    .work-full .work-desc { font-size: 14px; }
+    .wf-cta {
+      display: inline-block;
+      margin-top: 14px;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--red);
+      padding: 8px 16px;
+      text-decoration: none;
+      transform: skewX(-8deg);
+      width: fit-content;
+    }
+    .wf-cta:hover { background: var(--red-bright); }
+
+    /* ─── GAMES ─── */
+    .games-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .game-card {
+      background: var(--ink);
+      border: 2px solid #000;
+      overflow: hidden;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    }
+    .game-card:hover { transform: translateY(-5px); border-color: var(--red); box-shadow: 5px 5px 0 var(--red); }
+    .game-thumb { width: 100%; aspect-ratio: 3/4; overflow: hidden; position: relative; }
+    .game-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.1);
+      transition: filter 0.4s ease, transform 0.4s ease;
+    }
+    .game-card:hover .game-thumb img { filter: grayscale(0%) saturate(1.3); transform: scale(1.05); }
+    .game-info { padding: 12px; }
+    .game-genre {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--red-bright); margin-bottom: 4px;
+    }
+    .game-title {
+      font-family: 'Anton', sans-serif; font-size: 16px; line-height: 1.05;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .game-score {
+      font-family: 'Anton', sans-serif; font-size: 28px; color: var(--red-bright); line-height: 1;
+      margin-bottom: 8px; transform: skewX(-6deg); display: inline-block;
+    }
+    .game-score span { font-size: 13px; color: rgba(247,243,234,0.5); }
+    .game-motto {
+      font-family: 'Oswald', sans-serif; font-style: italic; font-size: 11.5px; line-height: 1.4;
+      color: var(--white); border-left: 3px solid var(--red); padding-left: 8px; margin-bottom: 8px;
+    }
+    .game-why {
+      font-family: 'Oswald', sans-serif; font-weight: 300; font-size: 11px; line-height: 1.55;
+      color: rgba(247,243,234,0.7);
+    }
+
+    /* ─── ANIME ─── */
+    .anime-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .abar {
+      position: relative;
+      height: 70px;
+      overflow: hidden;
+      border: 2px solid #000;
+      background: #050505;
+    }
+    .abar .fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      overflow: hidden;
+      transition: width 1.1s cubic-bezier(0.4,0,0.2,1);
+    }
+    .abar .fill img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: top center;
+      filter: grayscale(100%) contrast(1.1);
+    }
+    .abar .color-layer {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      overflow: hidden; pointer-events: none;
+    }
+    .abar .color-layer img {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: top center;
+      filter: saturate(1.35) contrast(1.1);
+    }
+    .abar .fill::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(230,0,18,0.15) 0%, rgba(10,10,10,0.4) 55%, rgba(10,10,10,0.9) 100%);
+    }
+    .abar .label {
+      position: absolute; inset: 0; z-index: 3;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px;
+    }
+    .abar .a-title {
+      font-family: 'Anton', sans-serif; font-size: 17px; text-transform: uppercase;
+      color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.9); max-width: 68%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transform: skewX(-4deg);
+    }
+    .abar .a-score {
+      font-family: 'Anton', sans-serif; font-size: 24px; color: var(--red-bright);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.9); flex-shrink: 0;
+    }
+    .abar .a-score span { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+    /* ─── NFT ─── */
+    .nft-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+    .nft-card {
+      background: var(--ink); border: 2px solid #000; overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .nft-card:hover { transform: translateY(-4px) rotate(-1.5deg); border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
+    .nft-thumb { width: 100%; aspect-ratio: 1/1; overflow: hidden; }
+    .nft-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: grayscale(100%); transition: filter 0.4s ease, transform 0.4s ease;
+    }
+    .nft-card:hover .nft-thumb img { filter: grayscale(0%) saturate(1.2); transform: scale(1.06); }
+    .nft-name {
+      font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 11px;
+      text-align: center; padding: 7px 4px; letter-spacing: 0.04em;
+    }
+
+    /* ─── CROSSWORD / COMMUNITY ─── */
+    .cw-layout { display: grid; grid-template-columns: auto 1fr; gap: 34px; align-items: start; }
+    .cw-grid { display: inline-grid; gap: 4px; user-select: none; }
+    .cw-cell {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Anton', sans-serif; font-size: 17px; text-transform: uppercase;
+      transition: background 0.18s, color 0.18s, transform 0.18s;
+    }
+    .cw-cell.letter { background: var(--ink); border: 2px solid var(--red); color: var(--white); cursor: default; }
+    .cw-cell.black { background: transparent; }
+    .cw-cell.highlight { background: var(--red); color: #fff; border-color: #fff; transform: scale(1.08); }
+    .cw-info {
+      background: var(--ink);
+      border: 2px solid var(--red);
+      padding: 22px;
+      min-height: 210px;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+    }
+    .cw-info .cw-hint { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red-bright); }
+    .cw-clue-h { font-family: 'Anton', sans-serif; font-size: 15px; text-transform: uppercase; margin: 12px 0 6px; color: #fff; }
+    .cw-clue { font-family: 'Oswald', sans-serif; font-weight: 300; font-size: 12.5px; line-height: 1.6; color: rgba(247,243,234,0.8); margin-bottom: 6px; }
+    .cw-clue strong { color: var(--red-bright); }
+    .cw-clue em { color: rgba(247,243,234,0.5); }
+    #cw-avatar { width: 92px; height: 92px; overflow: hidden; border: 3px solid var(--red); margin-bottom: 14px; clip-path: polygon(0 0,100% 0,100% 84%,84% 100%,0 100%); }
+    #cw-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    #cw-name { font-family: 'Anton', sans-serif; font-size: 26px; text-transform: uppercase; margin-bottom: 6px; transform: skewX(-4deg); }
+    #cw-role { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red-bright); margin-bottom: 12px; }
+    #cw-quote { font-family: 'Oswald', sans-serif; font-weight: 300; font-size: 14.5px; line-height: 1.7; color: rgba(247,243,234,0.9); }
+
+    /* ─── FOOTER ─── */
+    .p5-footer {
+      margin-top: 60px;
+      background: var(--red);
+      color: #fff;
+      text-align: center;
+      padding: 46px 20px 26px;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 22px, 22px 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .p5-footer .foot-star {
+      position: absolute; left: -4vw; bottom: -8vw;
+      font-size: 34vw; line-height: 1; color: #000; opacity: 0.12;
+      animation: bgStar 5s ease-in-out infinite;
+    }
+    .foot-main {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(30px, 6vw, 60px);
+      text-transform: uppercase;
+      transform: skewX(-5deg);
+      text-shadow: 3px 3px 0 #000;
+      position: relative; z-index: 2;
+    }
+    .foot-sub {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      margin-top: 10px; color: rgba(255,255,255,0.85);
+      position: relative; z-index: 2;
+    }
+    .foot-socials { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 22px 0; position: relative; z-index: 2; }
+    .foot-btn {
+      display: flex; align-items: center; gap: 7px;
+      font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 12px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #fff; text-decoration: none;
+      border: 2px solid #000; background: rgba(0,0,0,0.25);
+      padding: 7px 14px; transform: skewX(-8deg);
+      transition: background 0.15s, transform 0.15s;
+    }
+    .foot-btn:hover { background: #000; transform: skewX(-8deg) translateY(-2px); }
+    .foot-copy {
+      font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.7); border-top: 1px solid rgba(0,0,0,0.3);
+      padding-top: 16px; margin-top: 8px; position: relative; z-index: 2;
+    }
+
+    /* ─── MODAL ─── */
+    .modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(158,0,13,0.55);
+      backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+      padding: 26px;
+    }
+    .modal.open { display: flex; animation: modalFlash 0.35s ease; }
+    @keyframes modalFlash { from { opacity: 0; } to { opacity: 1; } }
+    .modal-box {
+      background: var(--ink);
+      border: 3px solid var(--red);
+      max-width: 680px; width: 100%; max-height: 86vh; overflow-y: auto;
+      padding: 28px;
+      position: relative;
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+      animation: modalIn 0.35s cubic-bezier(0.2,1.1,0.4,1);
+    }
+    @keyframes modalIn { from { transform: translateY(30px) skewX(-3deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px;
+      font-family: 'Anton', sans-serif; font-size: 22px;
+      background: var(--red); color: #fff; border: none;
+      width: 34px; height: 34px; cursor: pointer; line-height: 1;
+      transform: skewX(-6deg);
+    }
+    .modal-close:hover { background: #fff; color: var(--red); }
+    .modal-cat {
+      font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--red-bright);
+      border-left: 4px solid var(--red); padding-left: 9px; margin-bottom: 10px;
+    }
+    .modal-title {
+      font-family: 'Anton', sans-serif; font-size: 32px; text-transform: uppercase;
+      line-height: 1; margin-bottom: 16px; transform: skewX(-4deg); text-shadow: 3px 3px 0 var(--red);
+    }
+    .modal-img { width: 100%; aspect-ratio: 16/9; overflow: hidden; border: 2px solid var(--red); margin-bottom: 16px; }
+    .modal-img img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.15) contrast(1.05); transition: transform 0.5s ease; }
+    .modal-img:hover img { transform: scale(1.05); }
+    .modal-body { font-family: 'Oswald', sans-serif; font-weight: 300; font-size: 14px; line-height: 1.75; color: rgba(247,243,234,0.9); }
+    .modal-body b, .modal-body strong { font-weight: 600; color: #fff; }
+    .modal-link {
+      display: inline-block; margin-top: 14px; margin-right: 14px;
+      font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px;
+      letter-spacing: 0.12em; text-transform: uppercase; color: #fff;
+      background: var(--red); padding: 8px 15px; text-decoration: none; transform: skewX(-8deg);
+    }
+    .modal-link:hover { background: var(--red-bright); }
+
+    /* ─── BACK TO TOP ─── */
+    .to-top {
+      position: fixed; bottom: 24px; right: 24px; z-index: 500;
+      width: 46px; height: 46px;
+      background: var(--red); color: #fff; border: 2px solid #000;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Anton', sans-serif; font-size: 20px;
+      text-decoration: none; cursor: pointer;
+      opacity: 0; transform: translateY(12px) skewX(-6deg);
+      transition: opacity 0.3s, transform 0.3s, background 0.15s;
+      clip-path: polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%);
+    }
+    .to-top.visible { opacity: 1; transform: translateY(0) skewX(-6deg); }
+    .to-top:hover { background: var(--red-bright); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr 1fr; }
+      .hero-main { grid-column: 1 / -1; }
+      .numbers { grid-template-columns: repeat(2, 1fr); }
+      .works-grid { grid-template-columns: repeat(2, 1fr); }
+      .games-grid { grid-template-columns: repeat(3, 1fr); }
+      .nft-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 620px) {
+      .hero { grid-template-columns: 1fr; }
+      .numbers { grid-template-columns: 1fr 1fr; }
+      .works-grid { grid-template-columns: 1fr; }
+      .work-full { grid-template-columns: 1fr; }
+      .work-full .wf-body { border-left: 2px solid var(--red); }
+      .games-grid { grid-template-columns: repeat(2, 1fr); }
+      .anime-grid { grid-template-columns: 1fr; }
+      .nft-grid { grid-template-columns: repeat(3, 1fr); }
+      .cw-layout { grid-template-columns: 1fr; gap: 20px; }
+      .sec-head { flex-direction: column; align-items: flex-start; }
+      .sec-sub { text-align: left; }
+      .p5-nav { display: none; }
+    }
+  </style>
+</head>
+
+<body id="top">
+
+  <!-- ═══ TOP BAR ═══ -->
+  <header class="p5-topbar">
+    <div class="p5-brand">APE<span class="red">COFT</span></div>
+    <nav class="p5-nav">
+      <a href="#intro">Intro</a>
+      <a href="#about">Stats</a>
+      <a href="#works">Works</a>
+      <a href="#games">Games</a>
+      <a href="#anime">Anime</a>
+      <a href="#community">Bonds</a>
+      <a href="#footer">Contact</a>
+    </nav>
+    <a href="index.html" class="p5-switch">◆ Change Style</a>
+  </header>
+
+  <div class="stage">
+
+    <!-- ═══ HERO ═══ -->
+    <section id="intro" class="hero reveal">
+      <!-- MAIN -->
+      <div class="hero-main">
+        <div class="hero-kicker">Finds Inspiration Everywhere. Turns It Into Something.</div>
+        <h1 class="hero-title">Jack of All Trades. In the Age of <span class="red">AI</span>, That Finally Makes Sense.</h1>
+        <p class="hero-deck">Not a specialist. Just someone who keeps showing up and making things.</p>
+        <p class="hero-body">Apecoft is a software engineer based in Bangkok. In his free time, he explores new ideas through AI, creating art, music, and animations across projects his wife genuinely supports and encourages. One thing kept leading to another, until the range of what he makes became hard to put in a single box.</p>
+        <p class="hero-body">Games are a personal love, mostly a source of inspiration. Web3 is a separate conviction. He came in early, as a builder, looking for ecosystems with real long-term potential. Sui is the chain that kept making the most sense.</p>
+        <div class="hero-cta-row">
+          <a href="#works" class="btn btn-red"><span>See Activity →</span></a>
+          <a href="#footer" class="btn btn-ghost"><span>Ring Me →</span></a>
+        </div>
+      </div>
+
+      <!-- PHOTO + EXPERIENCE -->
+      <div>
+        <div class="hero-photo">
+          <img src="PFP.JPG" alt="Apecoft" onerror="this.parentElement.style.background='#9e000d'"/>
+          <span class="ph-cap">apecoftza.sui</span>
+        </div>
+        <div class="block" style="margin-top:18px;">
+          <div class="block-h">Experience</div>
+          <ul class="kv-list">
+            <li>Apetimism <span>Community Moderator</span></li>
+            <li>Drip.Haus <span>AI Content Creator</span></li>
+            <li>Spotify <span>AI Music Creator</span></li>
+            <li>Magic Maidens <span>NFT Project Owner</span></li>
+            <li>Avarun.xyz <span>Co-Founder</span></li>
+            <li>Software Industry <span>Software Engineer</span></li>
+            <li>Manufacturing Industry <span>Product Owner</span></li>
+            <li>X <span>Content Creator</span></li>
+          </ul>
+        </div>
+        <div class="block">
+          <div class="block-h">Currently Focus</div>
+          <ul class="kv-list">
+            <li>Sui ✦ Linea <span>Long-term Builder</span></li>
+            <li>AI Systems <span>Advanced Workflow</span></li>
+            <li>Vibe Coding <span>Power User</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- SKILLS + SOCIAL -->
+      <div>
+        <div class="block">
+          <div class="block-h">Skills</div>
+          <div class="chips">
+            <span class="chip">Product Design</span>
+            <span class="chip">Project Management</span>
+            <span class="chip">Prototyping</span>
+            <span class="chip">AI Workflow</span>
+            <span class="chip">Prompt Engineering</span>
+            <span class="chip">NFT Publishing</span>
+            <span class="chip">Visual Content</span>
+            <span class="chip">Music Production</span>
+            <span class="chip">Video Editing</span>
+            <span class="chip">Community Building</span>
+          </div>
+        </div>
+        <div class="block">
+          <div class="block-h">Tools ✦ Tech</div>
+          <ul class="kv-list">
+            <li>Midjourney / PixAI <span>AI Image</span></li>
+            <li>Suno <span>AI Music</span></li>
+            <li>Claude / Gemini <span>AI Assistant</span></li>
+            <li>VS Code / OutSystems <span>Development</span></li>
+            <li>Canva / CapCut <span>Visual ✦ Video</span></li>
+            <li>DistroKid <span>Music Distribution</span></li>
+            <li>OpenSea / Drip <span>NFT Publishing</span></li>
+          </ul>
+        </div>
+        <div class="block">
+          <div class="block-h">Follow Me</div>
+          <ul class="soc-list">
+            <li><a href="https://x.com/softdigiworld" target="_blank" class="soc-link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.633,7.997c0.013,0.175,0.013,0.349,0.013,0.523c0,5.325-4.053,11.461-11.46,11.461c-2.282,0-4.402-0.661-6.186-1.809c0.324,0.037,0.636,0.05,0.973,0.05c1.883,0,3.616-0.636,5.001-1.721c-1.771-0.037-3.255-1.197-3.767-2.793c0.249,0.037,0.499,0.062,0.761,0.062c0.361,0,0.724-0.05,1.061-0.137c-1.847-0.374-3.23-1.995-3.23-3.953v-0.05c0.537,0.299,1.16,0.486,1.82,0.511C3.534,9.419,2.823,8.184,2.823,6.787c0-0.748,0.199-1.434,0.548-2.032c1.983,2.443,4.964,4.04,8.306,4.215c-0.062-0.3-0.1-0.611-0.1-0.923c0-2.22,1.796-4.028,4.028-4.028c1.16,0,2.207,0.486,2.943,1.272c0.91-0.175,1.782-0.512,2.556-0.973c-0.299,0.935-0.936,1.721-1.771,2.22c0.811-0.088,1.597-0.312,2.319-0.624C21.104,6.712,20.419,7.423,19.633,7.997z"/></svg>
+              <span class="soc-name">X / Twitter</span><span class="soc-handle">@softdigiworld</span></a></li>
+            <li><a href="https://open.spotify.com/artist/7wFj57KkSORD1TLCfZBcHJ" target="_blank" class="soc-link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+              <span class="soc-name">Spotify</span><span class="soc-handle">Music</span></a></li>
+            <li><a href="https://www.youtube.com/@apecoftmusic" target="_blank" class="soc-link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 8.037a4.26 4.26 0 0 0-.789-1.964 2.84 2.84 0 0 0-1.984-.839c-2.767-.2-6.926-.2-6.926-.2s-4.157 0-6.928.2a2.836 2.836 0 0 0-1.983.839 4.225 4.225 0 0 0-.79 1.965 30.146 30.146 0 0 0-.2 3.206v1.5a30.12 30.12 0 0 0 .2 3.206c.094.712.364 1.39.784 1.972.604.536 1.38.837 2.187.848 1.583.151 6.731.2 6.731.2s4.161 0 6.928-.2a2.844 2.844 0 0 0 1.985-.84 4.27 4.27 0 0 0 .787-1.965 30.12 30.12 0 0 0 .2-3.206v-1.516a30.672 30.672 0 0 0-.202-3.206Zm-11.692 6.554v-5.62l5.4 2.819-5.4 2.801Z"/></svg>
+              <span class="soc-name">YouTube</span><span class="soc-handle">@apecoftmusic</span></a></li>
+            <li><a href="https://drip.haus/apecoftworld" target="_blank" class="soc-link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.75 20.66 6.184-7.098c2.677-2.884 2.559-6.506.754-8.705-.898-1.095-2.206-1.816-3.72-1.855-1.293-.034-2.652.43-3.963 1.442-1.315-1.012-2.678-1.476-3.973-1.442-1.515.04-2.825.76-3.724 1.855-1.806 2.201-1.915 5.823.772 8.706l6.183 7.097c.19.216.46.34.743.34a.985.985 0 0 0 .743-.34Z"/></svg>
+              <span class="soc-name">Drip.Haus</span><span class="soc-handle">Digital Art</span></a></li>
+          </ul>
+        </div>
+        <div class="pquote">
+          <span class="qmark">&ldquo;</span>
+          <p>Find the thing. Learn it. Make something that lasts. That's the only trend worth following.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ NUMBERS ═══ -->
+    <section id="about" class="numbers reveal">
+      <div class="num-card">
+        <div class="num-big">14<sup>y+</sup></div>
+        <div class="num-label">In Software ✦ Tech</div>
+        <div class="num-desc">Started as a developer. Moved through banking, gaming, and manufacturing. Now a Product Owner.</div>
+      </div>
+      <div class="num-card">
+        <div class="num-big">9</div>
+        <div class="num-label">Projects Shipped</div>
+        <div class="num-desc">From mobile apps to enterprise systems. Each one taught something the next one used.</div>
+      </div>
+      <div class="num-card">
+        <div class="num-big">5<sup>y+</sup></div>
+        <div class="num-label">Creative Journey</div>
+        <div class="num-desc">Picked up AI tools out of curiosity. Kept going because it worked.</div>
+      </div>
+      <div class="num-card">
+        <div class="num-big">42<sup>+</sup></div>
+        <div class="num-label">Things Made</div>
+        <div class="num-desc">Art, music, animations, NFTs. Across platforms. Still counting.</div>
+      </div>
+    </section>
+
+    <!-- ═══ WORKS ═══ -->
+    <section id="works" class="sec reveal">
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">Section 02</span>
+          <h2 class="sec-title">Activity ✦ Works</h2>
+        </div>
+        <p class="sec-sub">"Click any item to read more."</p>
+      </div>
+
+      <div class="works-grid">
+        <!-- TOOL SUITE -->
+        <div class="work-card work-full jag" onclick="openModal('m-tool')">
+          <div class="wf-art">
+            <div class="burst"></div>
+            <div class="wf-center">
+              <div class="m">APECOFT</div>
+              <div class="s">Tool Suite</div>
+            </div>
+          </div>
+          <div class="wf-body">
+            <div class="work-cat">Web App · DeFi Tool</div>
+            <h3 class="work-title">Apecoft Tool Suite</h3>
+            <p class="work-desc">An open-source DeFi utility suite built for people who think before they move money. Covers liquidity pools, yield tracking, market cap comparison, airdrop analysis, and more. Free to use.</p>
+            <a href="https://chulasoft.github.io/apecoft-tool-suite/" target="_blank" class="wf-cta" onclick="event.stopPropagation()">Launch Tool Suite →</a>
+          </div>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-lyric')">
+          <div class="work-thumb"><img src="lyric-cover.png" alt="Yume no Restart" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">YouTube · Lyric Video</div>
+          <h3 class="work-title">Yume no Restart</h3>
+          <p class="work-desc">A personal track from the album Restart Me. Made entirely with AI, with full intention behind every detail.</p>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-magic')">
+          <div class="work-thumb"><img src="g-magic.jpg" alt="Magic Maidens" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">NFT Project Owner · OpenSea</div>
+          <h3 class="work-title">Magic Maidens</h3>
+          <p class="work-desc">Two self-directed NFT collections on Optimism and Base. Different styles, same owner. Built end to end.</p>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-drip')">
+          <div class="work-thumb"><img src="g-drip.jpg" alt="Taki no Tensei" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">AI Content Creator</div>
+          <h3 class="work-title">Taki no Tensei</h3>
+          <p class="work-desc">AI-generated visuals, audio, and animations. Standard drops and auctions across the collection.</p>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-ava')">
+          <div class="work-thumb"><img src="g-ava.jpg" alt="Avarun / Avanut" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">Co-Founder · Web3 Games</div>
+          <h3 class="work-title">Avarun / Avanut</h3>
+          <p class="work-desc">Two games built around the AVA CTO project. Creative direction and game design alongside the Diewland team.</p>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-music')">
+          <div class="work-thumb"><img src="g-music.jpg" alt="Magic Maidens OST" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">Music · Spotify</div>
+          <h3 class="work-title">Magic Maidens OST</h3>
+          <p class="work-desc">Full original soundtrack album. Composed with AI, independently distributed worldwide on Spotify.</p>
+        </div>
+
+        <div class="work-card" onclick="openModal('m-ape')">
+          <div class="work-thumb"><img src="g-ape.jpg" alt="Apetimism" onerror="this.style.display='none'"/></div>
+          <div class="work-cat">Community Moderator</div>
+          <h3 class="work-title">Apetimism</h3>
+          <p class="work-desc">Co-moderated Thailand's pioneering NFT community on Optimism L2. Events, Discord, and IRL activations.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ GAMES ═══ -->
+    <section id="games" class="sec reveal">
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">Section 03</span>
+          <h2 class="sec-title">Games Played.<br>Never Forgotten.</h2>
+        </div>
+        <p class="sec-sub">"Where most of the inspiration comes from."</p>
+      </div>
+
+      <div class="games-grid">
+        <div class="game-card">
+          <div class="game-thumb"><img src="pragmata.png" alt="Pragmata" onerror="this.parentElement.style.background='#9e000d'"/></div>
+          <div class="game-info">
+            <div class="game-genre">Sci-Fi · Action</div>
+            <h3 class="game-title">Pragmata</h3>
+            <div class="game-score">9.5 <span>/10</span></div>
+            <p class="game-motto">"The space dad simulator that hits different."</p>
+            <p class="game-why">A game that delivers something genuinely unfamiliar. High pressure, deeply human. Diana is wonderful.</p>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-thumb"><img src="expedition33.png" alt="Clair Obscur: Expedition 33" onerror="this.parentElement.style.background='#9e000d'"/></div>
+          <div class="game-info">
+            <div class="game-genre">RPG</div>
+            <h3 class="game-title">Clair Obscur: Exp. 33</h3>
+            <div class="game-score">9.7 <span>/10</span></div>
+            <p class="game-motto">"A debut that rewrote what JRPG can be."</p>
+            <p class="game-why">Visuals, sound, story, gameplay. Everything lands perfectly. A first-time studio that somehow made a masterpiece.</p>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-thumb"><img src="fire-emblem.jpg" alt="Fire Emblem Three Houses" onerror="this.parentElement.style.background='#9e000d'"/></div>
+          <div class="game-info">
+            <div class="game-genre">Tactical RPG</div>
+            <h3 class="game-title">Fire Emblem: 3 Houses</h3>
+            <div class="game-score">8.7 <span>/10</span></div>
+            <p class="game-motto">"The legendary IP that never gets old."</p>
+            <p class="game-why">A series that never dies. Strong story, satisfying tactical depth, and mini games that round everything out.</p>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-thumb"><img src="persona3.jpg" alt="Persona 3 Reload" onerror="this.parentElement.style.background='#9e000d'"/></div>
+          <div class="game-info">
+            <div class="game-genre">JRPG</div>
+            <h3 class="game-title">Persona 3 Reload</h3>
+            <div class="game-score">8.5 <span>/10</span></div>
+            <p class="game-motto">"The legendary IP everyone knows."</p>
+            <p class="game-why">A JRPG with great social mechanics, a dark story, and well-crafted characters with real depth. One of the good ones.</p>
+          </div>
+        </div>
+        <div class="game-card">
+          <div class="game-thumb"><img src="ac-odyssey.png" alt="Assassin's Creed Odyssey" onerror="this.parentElement.style.background='#9e000d'"/></div>
+          <div class="game-info">
+            <div class="game-genre">Action RPG</div>
+            <h3 class="game-title">AC: Odyssey</h3>
+            <div class="game-score">9.0 <span>/10</span></div>
+            <p class="game-motto">"The bold reinvention that actually worked."</p>
+            <p class="game-why">Favorite in the series. Open world RPG done right. Took a risk stepping outside its own formula and pulled it off.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ANIME ═══ -->
+    <section id="anime" class="sec reveal">
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">Section 04</span>
+          <h2 class="sec-title">Anime. Watched.<br>Remembered.</h2>
+        </div>
+        <p class="sec-sub">"Stories that left something behind."</p>
+      </div>
+
+      <div class="anime-grid">
+        <div class="abar">
+          <div class="fill" style="width:99%"><img src="aot.jpg" alt="Attack on Titan"/><div class="color-layer"><img src="aot.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Attack on Titan</span><span class="a-score">9.9<span> /10</span></span></div>
+        </div>
+        <div class="abar">
+          <div class="fill" style="width:95%"><img src="charcount.jpg" alt="Gundam"/><div class="color-layer"><img src="charcount.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Gundam: Char's Counterattack</span><span class="a-score">9.5<span> /10</span></span></div>
+        </div>
+        <div class="abar">
+          <div class="fill" style="width:93%"><img src="deathnote.jpg" alt="Death Note"/><div class="color-layer"><img src="deathnote.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Death Note</span><span class="a-score">9.3<span> /10</span></span></div>
+        </div>
+        <div class="abar">
+          <div class="fill" style="width:90%"><img src="codege.jpg" alt="Code Geass"/><div class="color-layer"><img src="codege.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Code Geass</span><span class="a-score">9.0<span> /10</span></span></div>
+        </div>
+        <div class="abar">
+          <div class="fill" style="width:87%"><img src="overlord.jpg" alt="Overlord"/><div class="color-layer"><img src="overlord.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Overlord</span><span class="a-score">8.7<span> /10</span></span></div>
+        </div>
+        <div class="abar">
+          <div class="fill" style="width:85%"><img src="neon.jpg" alt="Neon Genesis Evangelion"/><div class="color-layer"><img src="neon.jpg" alt=""/></div></div>
+          <div class="label"><span class="a-title">Neon Genesis Evangelion</span><span class="a-score">8.5<span> /10</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ NFT ═══ -->
+    <section id="nft" class="sec reveal">
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">Section 05</span>
+          <h2 class="sec-title">Collected on Sui.</h2>
+        </div>
+        <p class="sec-sub">"Things worth keeping on-chain."</p>
+      </div>
+
+      <div class="nft-grid">
+        <div class="nft-card"><div class="nft-thumb"><img src="tally.png" alt="Tally"/></div><div class="nft-name">Tally</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="Suimilios.png" alt="Suimilios"/></div><div class="nft-name">Suimilios</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="suuuiplash_Hero.png" alt="Suuuiplash Hero"/></div><div class="nft-name">Suuuiplash Hero</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="ikachan.jpg" alt="Ikachan"/></div><div class="nft-name">Ikachan</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="doonies.png" alt="Doonies"/></div><div class="nft-name">Doonies</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="Mystic_Yeti.png" alt="Mystic Yeti"/></div><div class="nft-name">Mystic Yeti</div></div>
+        <div class="nft-card"><div class="nft-thumb"><img src="Popkins.png" alt="Popkins"/></div><div class="nft-name">Popkins</div></div>
+      </div>
+    </section>
+
+    <!-- ═══ COMMUNITY / CROSSWORD ═══ -->
+    <section id="community" class="sec reveal">
+      <div class="sec-head">
+        <div>
+          <span class="sec-tag">Section 06</span>
+          <h2 class="sec-title">Truly Love</h2>
+        </div>
+        <p class="sec-sub">"The communities that shaped who I am."</p>
+      </div>
+
+      <div class="cw-layout">
+        <div>
+          <div class="cw-grid" id="crossword"></div>
+          <p style="font-family:'Courier Prime',monospace; font-size:10px; letter-spacing:0.16em; color:var(--red-bright); text-transform:uppercase; margin-top:12px; text-align:center;">Hover to reveal</p>
+        </div>
+        <div class="cw-info" id="crossword-info">
+          <div class="cw-info-default">
+            <span class="cw-hint">Clues</span>
+            <div class="cw-clue-h">Across</div>
+            <p class="cw-clue"><strong>1.</strong> Thai NFT community that started it all. Runs on Optimism L2. <em>(9)</em></p>
+            <p class="cw-clue"><strong>3.</strong> The endgame. An L1 blockchain worth believing in. <em>(3)</em></p>
+            <div class="cw-clue-h">Down</div>
+            <p class="cw-clue"><strong>1.</strong> The tiger they rally around. CTO community with Thai pride. <em>(3)</em></p>
+            <p class="cw-clue"><strong>2.</strong> A safe zone for the inner circle. Pieces that fit together. <em>(6)</em></p>
+            <p class="cw-hint" style="margin-top:16px; text-align:center;">Hover a word to reveal</p>
+          </div>
+          <div class="cw-info-content" style="display:none;">
+            <div id="cw-avatar"><img id="cw-img" src="" alt=""/></div>
+            <div id="cw-name"></div>
+            <div id="cw-role"></div>
+            <p id="cw-quote"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /stage -->
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer id="footer" class="p5-footer">
+    <div class="foot-star">★</div>
+    <p class="foot-main">That's All For Now.</p>
+    <p class="foot-sub">Post in Digital Realm &nbsp;·&nbsp; Made with ♥ by Apecoft</p>
+    <div class="foot-socials">
+      <a href="https://x.com/softdigiworld" target="_blank" class="foot-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.633,7.997c0.013,0.175,0.013,0.349,0.013,0.523c0,5.325-4.053,11.461-11.46,11.461c-2.282,0-4.402-0.661-6.186-1.809c0.324,0.037,0.636,0.05,0.973,0.05c1.883,0,3.616-0.636,5.001-1.721c-1.771-0.037-3.255-1.197-3.767-2.793c0.249,0.037,0.499,0.062,0.761,0.062c0.361,0,0.724-0.05,1.061-0.137c-1.847-0.374-3.23-1.995-3.23-3.953v-0.05c0.537,0.299,1.16,0.486,1.82,0.511C3.534,9.419,2.823,8.184,2.823,6.787c0-0.748,0.199-1.434,0.548-2.032c1.983,2.443,4.964,4.04,8.306,4.215c-0.062-0.3-0.1-0.611-0.1-0.923c0-2.22,1.796-4.028,4.028-4.028c1.16,0,2.207,0.486,2.943,1.272c0.91-0.175,1.782-0.512,2.556-0.973c-0.299,0.935-0.936,1.721-1.771,2.22c0.811-0.088,1.597-0.312,2.319-0.624C21.104,6.712,20.419,7.423,19.633,7.997z"/></svg>
+        Twitter</a>
+      <a href="https://open.spotify.com/artist/7wFj57KkSORD1TLCfZBcHJ" target="_blank" class="foot-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Spotify</a>
+      <a href="https://www.youtube.com/@apecoftmusic" target="_blank" class="foot-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 8.037a4.26 4.26 0 0 0-.789-1.964 2.84 2.84 0 0 0-1.984-.839c-2.767-.2-6.926-.2-6.926-.2s-4.157 0-6.928.2a2.836 2.836 0 0 0-1.983.839 4.225 4.225 0 0 0-.79 1.965 30.146 30.146 0 0 0-.2 3.206v1.5a30.12 30.12 0 0 0 .2 3.206c.094.712.364 1.39.784 1.972.604.536 1.38.837 2.187.848 1.583.151 6.731.2 6.731.2s4.161 0 6.928-.2a2.844 2.844 0 0 0 1.985-.84 4.27 4.27 0 0 0 .787-1.965 30.12 30.12 0 0 0 .2-3.206v-1.516a30.672 30.672 0 0 0-.202-3.206Zm-11.692 6.554v-5.62l5.4 2.819-5.4 2.801Z"/></svg>
+        YouTube</a>
+      <a href="https://drip.haus/apecoftworld" target="_blank" class="foot-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m12.75 20.66 6.184-7.098c2.677-2.884 2.559-6.506.754-8.705-.898-1.095-2.206-1.816-3.72-1.855-1.293-.034-2.652.43-3.963 1.442-1.315-1.012-2.678-1.476-3.973-1.442-1.515.04-2.825.76-3.724 1.855-1.806 2.201-1.915 5.823.772 8.706l6.183 7.097c.19.216.46.34.743.34a.985.985 0 0 0 .743-.34Z"/></svg>
+        Drip.Haus</a>
+    </div>
+    <div class="foot-copy">© Apecoft — 2021 &nbsp;·&nbsp; Deploy on Walrus · Powered by Walgo</div>
+  </footer>
+
+  <a class="to-top" id="to-top" href="#top" title="Back to top">↑</a>
+
+  <!-- ═══ MODALS ═══ -->
+  <div class="modal" id="m-tool" onclick="closeModal(event,'m-tool')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-tool')">✕</button>
+      <div class="modal-cat">Web App · DeFi Tool · Open Source</div>
+      <h2 class="modal-title">Apecoft Tool Suite</h2>
+      <div class="modal-img" style="background:var(--black); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; border-color:var(--red);">
+        <div style="font-family:'Anton',sans-serif; font-size:38px; color:#fff; text-shadow:3px 3px 0 var(--red);">APECOFT</div>
+        <div style="font-family:'Courier Prime',monospace; font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.5);">Tool Suite</div>
+      </div>
+      <p class="modal-body">An open-source collection of DeFi utilities built to help make better on-chain decisions. Each tool focuses on one thing and tries to do it clearly.</p>
+      <p class="modal-body" style="margin-top:10px;">Current tools include a Liquidity Pool Calculator, DeFi Yield Tracker, Market Cap Comparator, Airdrop Hunter's Companion, PT/YT Strategy Simulator, Moon Sheet, and more. Also home to a growing set of mini games built for fun on the side.</p>
+      <p class="modal-body" style="margin-top:10px; font-style:italic; color:var(--red-bright);">Built for DeFi thinking. And occasionally, for fun.</p>
+      <a class="modal-link" href="https://chulasoft.github.io/apecoft-tool-suite/" target="_blank">Launch Tool Suite →</a>
+      <a class="modal-link" href="https://github.com/chulasoft/apecoft-tool-suite" target="_blank">View on GitHub →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-lyric" onclick="closeModal(event,'m-lyric')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-lyric')">✕</button>
+      <div class="modal-cat">YouTube · Lyric Video · Restart Me Album</div>
+      <h2 class="modal-title">Yume no Restart</h2>
+      <div class="modal-img"><img src="lyric-cover.png" alt="Yume no Restart" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body">A track born entirely from personal inspiration. No brief, just a feeling that needed somewhere to go. Yume no Restart is part of the album Restart Me, a project meant to push both the creator and the listener forward.</p>
+      <p class="modal-body" style="margin-top:10px;">Everything here was made with AI: the melody, the arrangement, the artwork. But every decision was deliberate. The care went in. That part was never automated.</p>
+      <p class="modal-body" style="margin-top:10px; font-style:italic; color:var(--red-bright);">Made with AI. Filled with intention.</p>
+      <a class="modal-link" href="https://youtu.be/egGfqUiqj1I?si=UJGbLSkYjNUvtGUM" target="_blank">Watch on YouTube →</a>
+      <a class="modal-link" href="https://open.spotify.com/album/7t3QxMsExnNejjnPn0DQNM?si=mhoILQsjQG-CaYLrfbyeSQ" target="_blank">Listen on Spotify →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-magic" onclick="closeModal(event,'m-magic')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-magic')">✕</button>
+      <div class="modal-cat">NFT Project Owner · OpenSea</div>
+      <h2 class="modal-title">Magic Maidens</h2>
+      <div class="modal-img"><img src="g-magic.jpg" alt="Magic Maidens" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body"><b>Genesis — Optimism L2</b></p>
+      <p class="modal-body">100 unique PFP artworks launched in January 2024 on Optimism. Built entirely solo: artwork, IPFS, metadata, smart contracts, and minting. The first collection and the one that started it all.</p>
+      <p class="modal-body" style="margin-top:14px;"><b>Phantom — Base</b></p>
+      <p class="modal-body">130 items launched in June 2024 on Base, taking a different visual direction from Genesis. Introduced a faction-based trait system with rarity ranking. A step up in both complexity and scope.</p>
+      <p class="modal-body" style="margin-top:12px; font-style:italic; color:var(--red-bright);">Two collections. Two chains. One creator.</p>
+      <a class="modal-link" href="https://opensea.io/collection/magic-maidens-genesis" target="_blank">Genesis →</a>
+      <a class="modal-link" href="https://opensea.io/collection/magic-maidens-phantom" target="_blank">Phantom →</a>
+      <a class="modal-link" href="https://x.com/magic_maidens" target="_blank">Follow on X →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-drip" onclick="closeModal(event,'m-drip')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-drip')">✕</button>
+      <div class="modal-cat">AI Content · Published on Drip.Haus</div>
+      <h2 class="modal-title">Taki no Tensei</h2>
+      <div class="modal-img"><img src="g-drip.jpg" alt="Taki no Tensei" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body">A collection of AI-generated creative works spanning images, audio, and animations. Each piece was planned, produced, and deployed independently. From concept to auction setup. Covers both standard drops and auction formats to reach supporters in different ways.</p>
+      <a class="modal-link" href="https://drip.haus/apecoftworld/collectible/drip-shared-collection-taki-no-tensei-0e0d50c3" target="_blank">View on Drip.Haus →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-music" onclick="closeModal(event,'m-music')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-music')">✕</button>
+      <div class="modal-cat">Music · Spotify · Magic Maidens Universe</div>
+      <h2 class="modal-title">Magic Maidens OST</h2>
+      <div class="modal-img"><img src="g-music.jpg" alt="Magic Maidens OST" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body">The official soundtrack to the Magic Maidens NFT universe. Composed entirely with AI tools, every track was written to match the tone and story of the collection. Produced, arranged, and distributed independently without a label.</p>
+      <p class="modal-body" style="margin-top:10px;">Available on Spotify worldwide. Each track is a standalone piece that also works as part of the larger album experience.</p>
+      <a class="modal-link" href="https://open.spotify.com/album/385ouJGG6zAh5vwOmIzk24?si=wA6VEP7dR-2G1uU9gj9eyA" target="_blank">Listen on Spotify →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-ava" onclick="closeModal(event,'m-ava')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-ava')">✕</button>
+      <div class="modal-cat">Co-Founder · Web3 Games · AVA CTO</div>
+      <h2 class="modal-title">Avarun / Avanut</h2>
+      <div class="modal-img"><img src="g-ava.jpg" alt="Avarun / Avanut" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body"><b>Avarun</b></p>
+      <p class="modal-body">An AVA CTO project game built to promote the AVA community. Co-led creative development and game design alongside the Diewland team. From mechanics to user experience.</p>
+      <p class="modal-body" style="margin-top:14px;"><b>Avanut</b></p>
+      <p class="modal-body">A second game under the same AVA CTO umbrella, taking a different direction. Built to expand the ecosystem and give the community more ways to engage.</p>
+      <a class="modal-link" href="https://avarun.xyz/" target="_blank">Avarun →</a>
+      <a class="modal-link" href="https://avarun.xyz/nut/" target="_blank">Avanut →</a>
+    </div>
+  </div>
+
+  <div class="modal" id="m-ape" onclick="closeModal(event,'m-ape')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModalDirect('m-ape')">✕</button>
+      <div class="modal-cat">Community Moderator · Optimism L2</div>
+      <h2 class="modal-title">Apetimism</h2>
+      <div class="modal-img"><img src="g-ape.jpg" alt="Apetimism" onerror="this.parentElement.style.display='none'"/></div>
+      <p class="modal-body">Thailand's pioneering NFT community built on Optimism L2. Co-moderated alongside NuuNeoI, helping run the Discord server and keeping the environment inclusive and active.</p>
+      <p class="modal-body" style="margin-top:10px;">Organized game nights, board games, and IRL events. Served as emcee when needed. The role was less about managing and more about showing up consistently and helping people connect.</p>
+      <a class="modal-link" href="https://x.com/Apetimism" target="_blank">Follow on X →</a>
+    </div>
+  </div>
+
+  <script>
+    // ── MODALS ──
+    function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+    function closeModal(e,id){ if(e.target===document.getElementById(id)) closeModalDirect(id); }
+    function closeModalDirect(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+    document.addEventListener('keydown', e => {
+      if(e.key==='Escape') document.querySelectorAll('.modal.open').forEach(m=>{ m.classList.remove('open'); document.body.style.overflow=''; });
+    });
+
+    // ── REVEAL ON SCROLL ──
+    const revObs = new IntersectionObserver(entries => {
+      entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add('in'); revObs.unobserve(en.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+    // ── ANIME BARS FILL ON SCROLL ──
+    const barObs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if(en.isIntersecting){
+          const fill = en.target.querySelector('.fill');
+          if(fill){ const t = fill.dataset.w; setTimeout(()=>{ fill.style.width = t; }, 200); }
+          barObs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.abar').forEach(el => {
+      const fill = el.querySelector('.fill');
+      if(fill){ fill.dataset.w = fill.style.width; fill.style.width = '0%'; barObs.observe(el); }
+    });
+
+    // ── COLOR REVEAL (random direction) ──
+    const dirs = ['left','right','top','bottom'];
+    const clipIn = d => d==='left' ? 'inset(0 100% 0 0)' : d==='right' ? 'inset(0 0 0 100%)' : d==='top' ? 'inset(0 0 100% 0)' : 'inset(100% 0 0 0)';
+    const clipOpen = 'inset(0 0 0 0)';
+    document.querySelectorAll('.abar').forEach(item => {
+      const d = dirs[Math.floor(Math.random()*dirs.length)];
+      const img = item.querySelector('.color-layer img');
+      if(!img) return;
+      img.style.clipPath = clipIn(d);
+      img.style.transition = 'clip-path 0.55s cubic-bezier(0.4,0,0.2,1)';
+      item.addEventListener('mouseenter', ()=> img.style.clipPath = clipOpen);
+      item.addEventListener('mouseleave', ()=> img.style.clipPath = clipIn(d));
+    });
+    document.querySelectorAll('.game-thumb').forEach(thumb => {
+      const src = thumb.querySelector('img');
+      if(!src) return;
+      const d = dirs[Math.floor(Math.random()*dirs.length)];
+      const ov = document.createElement('div');
+      ov.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1;';
+      const ci = document.createElement('img');
+      ci.src = src.src;
+      ci.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:top center;filter:saturate(1.35) contrast(1.05);';
+      ci.style.clipPath = clipIn(d);
+      ci.style.transition = 'clip-path 0.55s cubic-bezier(0.4,0,0.2,1)';
+      ov.appendChild(ci); thumb.appendChild(ov);
+      const card = thumb.closest('.game-card');
+      card.addEventListener('mouseenter', ()=> ci.style.clipPath = clipOpen);
+      card.addEventListener('mouseleave', ()=> ci.style.clipPath = clipIn(d));
+    });
+
+    // ── NAV SCROLL SPY + BACK TO TOP ──
+    const navLinks = document.querySelectorAll('.p5-nav a');
+    const secIds = ['intro','about','works','games','anime','community','footer'];
+    const toTop = document.getElementById('to-top');
+    window.addEventListener('scroll', () => {
+      if(window.scrollY > 500) toTop.classList.add('visible'); else toTop.classList.remove('visible');
+      let cur = 'intro';
+      secIds.forEach(id => { const el = document.getElementById(id); if(el && window.scrollY >= el.offsetTop - 140) cur = id; });
+      navLinks.forEach(a => { a.classList.remove('active'); if(a.getAttribute('href') === '#'+cur) a.classList.add('active'); });
+    });
+
+    // ── CROSSWORD ──
+    const COLS = 9, ROWS = 6;
+    const gridData = Array.from({length: ROWS}, () => Array(COLS).fill(''));
+    'APETIMISM'.split('').forEach((c,i)=>{ gridData[1][i]=c; });
+    ['A','V','A'].forEach((c,i)=>{ gridData[1+i][0]=c; });
+    ['J','I','G','S','A','W'].forEach((c,i)=>{ gridData[i][4]=c; });
+    ['S','U','I'].forEach((c,i)=>{ gridData[3][4+i]=c; });
+
+    const words = {
+      APETIMISM: { cells: Array.from({length:9},(_,i)=>[1,i]), img:'ape.jpg', name:'Apetimism', role:'Thai Pioneer NFT L2',
+        quote:'A spark for countless Thai NFTs. A playground for experimentation, fun, and a world of learning. This is where it all began.' },
+      AVA: { cells:[[1,0],[2,0],[3,0]], img:'ava.jpg', name:'AVA', role:'Thai CTO Builder',
+        quote:'A community of strangers united by their love for AVA the tiger, with a shared goal of elevating the Thai community onto the global stage.' },
+      JIGSAW: { cells:[[0,4],[1,4],[2,4],[3,4],[4,4],[5,4]], img:'jigsaw.jpg', name:'Jigsaw', role:'Web3 Friend Community',
+        quote:'The wildest hangout spot for the closest web3 friends. A true safe zone. Knowledge shared without expecting anything in return.' },
+      SUI: { cells:[[3,4],[3,5],[3,6]], img:'sui.jpg', name:'Sui', role:'End Game L1 Blockchain',
+        quote:'A vibrant community of creators and tech pioneers passionately transforming the globe through blockchain.' }
+    };
+
+    const sharedCells = new Set(['1,0','1,4','3,4']);
+    const visibleCells = new Set(sharedCells);
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++)
+      if(gridData[r][c] && !sharedCells.has(`${r},${c}`) && Math.random()<0.35) visibleCells.add(`${r},${c}`);
+
+    const cellMap = {};
+    for(const [word,data] of Object.entries(words))
+      data.cells.forEach(([r,c])=>{ const k=`${r},${c}`; (cellMap[k]=cellMap[k]||[]).includes(word)||cellMap[k].push(word); });
+
+    const grid = document.getElementById('crossword');
+    grid.style.gridTemplateColumns = `repeat(${COLS}, 38px)`;
+    grid.style.gridTemplateRows = `repeat(${ROWS}, 38px)`;
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const cell = document.createElement('div');
+      const letter = gridData[r][c];
+      if(letter){
+        cell.className='cw-cell letter'; cell.dataset.pos=`${r},${c}`; cell.dataset.letter=letter;
+        const vis = visibleCells.has(`${r},${c}`);
+        cell.textContent = vis ? letter : '·';
+        cell.style.color = vis ? '' : 'rgba(230,0,18,0.55)';
+      } else cell.className='cw-cell black';
+      grid.appendChild(cell);
+    }
+
+    function highlightWord(key){
+      document.querySelectorAll('.cw-cell.letter').forEach(c=>{
+        c.classList.remove('highlight'); const pos=c.dataset.pos;
+        if(visibleCells.has(pos)||sharedCells.has(pos)){ c.textContent=c.dataset.letter; c.style.color=''; }
+        else { c.textContent='·'; c.style.color='rgba(230,0,18,0.55)'; }
+      });
+      if(!key){ showDefault(); return; }
+      words[key].cells.forEach(([r,c])=>{ const cell=document.querySelector(`.cw-cell[data-pos="${r},${c}"]`); if(cell){ cell.classList.add('highlight'); cell.textContent=cell.dataset.letter; } });
+      showInfo(key);
+    }
+    function showInfo(key){
+      const w=words[key];
+      document.querySelector('.cw-info-default').style.display='none';
+      document.querySelector('.cw-info-content').style.display='block';
+      const img=document.getElementById('cw-img'); img.src=w.img;
+      document.getElementById('cw-name').textContent=w.name;
+      document.getElementById('cw-role').textContent=w.role;
+      document.getElementById('cw-quote').textContent='"'+w.quote+'"';
+    }
+    function showDefault(){
+      document.querySelector('.cw-info-default').style.display='block';
+      document.querySelector('.cw-info-content').style.display='none';
+    }
+    grid.addEventListener('mouseover', e=>{ const cell=e.target.closest('.cw-cell.letter'); if(!cell) return; const wl=cellMap[cell.dataset.pos]; if(wl&&wl.length) highlightWord(wl[0]); });
+    grid.addEventListener('mouseleave', ()=> highlightWord(null));
+  </script>
+
+</body>
+</html>
