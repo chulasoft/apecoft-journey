@@ -7,7 +7,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@700;900&family=Playfair+Display:wght@700;900&family=Courier+Prime:wght@400;700&family=IM+Fell+English:ital@0;1&family=Anton&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@700;900&family=Playfair+Display:wght@700;900&family=Courier+Prime:wght@400;700&family=IM+Fell+English:ital@0;1&family=Anton&family=Oswald:wght@500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@700;900&family=Playfair+Display:wght@700;900&family=Courier+Prime:wght@400;700&family=IM+Fell+English:ital@0;1&family=Anton&family=Oswald:wght@500;600;700&display=swap"></noscript>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
@@ -169,17 +170,6 @@
       animation: stripeMove 2.4s linear infinite;
     }
     @keyframes stripeMove { to { transform: translateX(-120px); } }
-    .panel-p5 .p5-burst {
-      position: absolute;
-      top: 18%; left: 50%;
-      width: 120vh; height: 120vh;
-      transform: translate(-50%,-50%);
-      background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(0,0,0,0.22) 0deg 6deg, transparent 6deg 12deg);
-      animation: spin 22s linear infinite;
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
     .panel-p5 .p5-mask {
       position: absolute;
       bottom: -4%; right: 4%;
@@ -290,9 +280,49 @@
       .chooser-foot { position: static; margin-top: 10px; }
       .panel-news .ghost-head, .panel-p5 .p5-mask { display: none; }
     }
+
+    /* ─── PAGE TRANSITION ─── */
+    .ptrans {
+      position: fixed; inset: 0; z-index: 2000;
+      display: none; pointer-events: none; will-change: transform;
+    }
+    .ptrans.show { display: block; }
+    .ptrans.news { background: #efe9dc; }
+    .ptrans.bold { background: repeating-linear-gradient(115deg, #e60012 0 46px, #0a0a0a 46px 92px); }
+    .ptrans.news.coverIn { animation: newsIn .5s cubic-bezier(.7,0,.3,1) forwards; }
+    .ptrans.bold.coverIn { animation: boldIn .5s cubic-bezier(.7,0,.3,1) forwards; }
+    /* auto-play reveal on arrival — pure CSS, no JS timing dependency */
+    .ptrans.news.revealAuto { animation: newsOut .6s cubic-bezier(.7,0,.3,1) .1s both; }
+    .ptrans.bold.revealAuto { animation: boldOut .6s cubic-bezier(.7,0,.3,1) .1s both; }
+    @keyframes newsIn  { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    @keyframes newsOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
+    @keyframes boldIn  { from { transform: skewX(-10deg) scale(1.7) translateX(115%); } to { transform: skewX(-10deg) scale(1.7) translateX(0); } }
+    @keyframes boldOut { from { transform: skewX(-10deg) scale(1.7) translateX(0); } to { transform: skewX(-10deg) scale(1.7) translateX(-165%); } }
+
+    /* returning from a style page → skip the long intro splash */
+    html[data-returned] .intro-overlay { display: none; }
+    html[data-returned] .chooser-head { animation-delay: .15s; }
+    html[data-returned] .chooser-foot { animation-delay: .25s; }
   </style>
 </head>
 <body>
+
+  <!-- Page transition overlay -->
+  <div id="ptrans" class="ptrans"></div>
+  <script>
+    // Runs during parse: if we came back from a style page, cover instantly
+    // (before the chooser paints) so we can reveal it with a matching wipe.
+    (function () {
+      var back = sessionStorage.getItem('backTo');
+      if (back) {
+        sessionStorage.removeItem('backTo');
+        document.documentElement.setAttribute('data-returned', '1');
+        var pt = document.getElementById('ptrans');
+        // covers instantly (before paint), then CSS auto-plays the wipe away
+        pt.className = 'ptrans show ' + back + ' revealAuto';
+      }
+    })();
+  </script>
 
   <!-- Intro splash -->
   <div class="intro-overlay">
@@ -326,18 +356,17 @@
 
     <div class="split-divider"></div>
 
-    <!-- PERSONA 5 ROYAL -->
-    <a href="persona.html" class="panel panel-p5">
+    <!-- STYLE 02 — BOLD -->
+    <a href="bold.html" class="panel panel-p5">
       <div class="panel-bg">
-        <div class="p5-burst"></div>
         <div class="p5-stripes"></div>
         <div class="p5-mask">★</div>
       </div>
       <div class="panel-content">
-        <span class="tag">Style 02 — Show Time</span>
-        <div class="p-title">Take Your<br>Heart</div>
-        <p class="p-desc">Persona 5 Royal energy. Loud red &amp; black, jagged motion, living animation. Same story — turned all the way up.</p>
-        <span class="p-cta">All-Out Attack →</span>
+        <span class="tag">Style 02 — Bold</span>
+        <div class="p-title">Turn It<br>Up</div>
+        <p class="p-desc">A bold, high-energy reading. Loud red &amp; black, jagged motion, and living animation. Same story — turned all the way up.</p>
+        <span class="p-cta">Read It Loud →</span>
       </div>
     </a>
 
@@ -352,6 +381,22 @@
       const ov = document.querySelector('.intro-overlay');
       if (ov) ov.style.pointerEvents = 'none';
     }, 2700);
+
+    const ptrans = document.getElementById('ptrans');
+
+    // Leaving the chooser: play a style-specific wipe, then navigate.
+    // Newspaper = paper sheet drops down; Bold = red slash sweeps across.
+    const styleFor = { 'newspaper.html': 'news', 'bold.html': 'bold' };
+    document.querySelectorAll('.panel').forEach(a => {
+      a.addEventListener('click', e => {
+        const href = a.getAttribute('href');
+        const v = styleFor[href];
+        if (!v) return;
+        e.preventDefault();
+        ptrans.className = 'ptrans show ' + v + ' coverIn';
+        setTimeout(() => { window.location.href = href; }, 470);
+      });
+    });
   </script>
 
 </body>
